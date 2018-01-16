@@ -45,10 +45,12 @@
             huawei.cameraStartTar = app.camera.target;
             huawei.cabinets = app.buildings[0].floors[0].query(/Cabinet_/);
             huawei.devices = app.buildings[0].floors[0].query(/device/);
+            huawei.cam_start_pos = app.camera.position;
+            huawei.cam_start_tar = app.camera.target;
             // 隐藏房顶杂物
             app.buildings[0].floors[0].showMisc(false)
             // 移动摄像机到指定机柜
-            huawei.cabinets.forEach(function (t) {t.on('click',function () {
+            huawei.cabinets.forEach(function (t) {t.on('mousedown',function () {
                 // 透明化其他柜子
                 if(gui != null)
                     gui.destroy();
@@ -85,11 +87,11 @@
                         .easing(TWEEN.Easing.Elastic.InOut)
                         .onUpdate(function () {
                             door.node.rotation.set(this.x, this.y, this.z);
+                            door.angles = door.node.rotation;
                         })
                         .onComplete(function () {
                             door.node.rotation.set(flyPos.x, flyPos.y, flyPos.z);
-                            t.off('click');
-                        })
+                            t.off('mousedown');                        })
                         .start();
                         create_panel1(t);
                     }
@@ -97,7 +99,7 @@
             })
             })
             huawei.devices.forEach(function (dev) {
-                dev.on('click',function () {
+                dev.on('mousedown',function () {
                     if(box_gui != null)
                         box_gui.destroy();
                     if(gui != null)
@@ -105,6 +107,18 @@
                     var num = dev.name.substr(7);
 					create_panel2(num,dev);
                 })
+            })
+			app.on('mousedown',function (ev) {
+                ev.preventDefault();
+			    console.log(ev.button)
+				if(ev.button == 2){
+				    console.log("dian ji le you jian")
+                    app.camera.flyTo({
+                        position: huawei.cam_start_pos,
+                        target: huawei.cam_start_tar,
+                        time: 1000,
+					})
+				}
             })
         }
 
