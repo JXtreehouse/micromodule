@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset=utf-8>
+	<title>华为微模块-Demo</title>
+	<!-- 引用js -->
+	<script src="https://speech.uinnova.com/static/release/thing3d.min.js"></script>
+	<!--<script src="../../dist/thing3d.min.js"></script>-->
+	<script type="text/javascript" src="https://speech.uinnova.com/static/release/dat.gui.js"></script>
+	<style>
+		body {
+			margin: 0;
+			overflow: hidden;
+		}
+		canvas {
+			width: 100%;
+			height: 100%
+		}
+	</style>
+</head>
+
+<body>
+	<div id="div3d"></div>
+</body>
+<script>
+	var app;
+	window.onload = function () {
+		app = new t3d.App({
+			el: "div3d",
+			ak: 'app_test_key',
+			url: 'https://speech.uinnova.com/static/models/huawei/', // 模型场景的url
+//			url: 'model/huawei', // 模型场景的url
+//			loadSpeed:2,
+//			loadMode:1,
+			complete: function () {
+				do_init();
+			}
+		});
+		var huawei = [];
+		var gui, box_gui;
+        function do_init() {
+            huawei.floors = app.buildings[0].floors;
+            huawei.floors[0].showRoof(false);
+            huawei.cameraStartPos = app.camera.position;
+            huawei.cameraStartTar = app.camera.target;
+            huawei.cabinets = app.buildings[0].floors[0].query(/Cabinet_/);
+            huawei.devices = app.buildings[0].floors[0].query(/device/);
+            // 隐藏房顶杂物
+            app.buildings[0].floors[0].showMisc(false)
+            // 移动摄像机到指定机柜
+            huawei.cabinets.forEach(function (t) {t.on('click',function () {
+                // 透明化其他柜子
+                if(gui != null)
+                    gui.destroy();
+                huawei.cabinets.forEach(function (t2) {
+                    t2.style.opacity = 0.1;
+                    var rot = t2.findSubObjects("qianmen")[0].node.rotation;
+                    t2.findSubObjects("qianmen")[0].node.rotation.set(rot.x,rot.y,0,0);
+                });
+                huawei.devices.forEach(function (dev) {
+                    dev.visible = false;
+                })
+				var num = t.name.substr(8);
+				app.query('device_'+num.toString()).visible = true;
+                t.style.opacity = 1;
+                var door = t.findSubObjects("qianmen")[0];
+                var fromPos = door.node.rotation;
+                var flyPos = {
+                    x: fromPos.x,
+                    y: fromPos.y,
+                    z: -90
+                };
+                var pos;
+                switch(t.custom.排) {
+					case '1': pos = [-5.8,7.06,-7.73];break;
+					case '2': pos = [-7,10,4.8];break;
+				}
+                app.camera.flyTo({
+                    position: pos,
+                    target: t.position,
+                    time: 1000,
+                    complete:function(){
+                        new TWEEN.Tween(fromPos)
+                        .to(flyPos, 50)
+                        .easing(TWEEN.Easing.Elastic.InOut)
+                        .onUpdate(function () {
+                            door.node.rotation.set(this.x, this.y, this.z);
+                        })
+                        .onComplete(function () {
+                            door.node.rotation.set(flyPos.x, flyPos.y, flyPos.z);
+                            t.off('click');
+                        })
+                        .start();
+                        create_panel1(t);
+                    }
+                });
+            })
+            })
+            huawei.devices.forEach(function (dev) {
+                dev.on('click',function () {
+                    if(box_gui != null)
+                        box_gui.destroy();
+                    if(gui != null)
+                        gui.destroy();
+                    var num = dev.name.substr(7);
+					create_panel2(num,dev);
+                })
+            })
+        }
+
+		function create_panel1( box ) {
+            if(box_gui != null)
+                box_gui.destroy();
+            var obj = {
+                "架式设备信息": {},
+                "基本信息": {},
+                "警报信息": {}
+            };
+            var data1 = {
+                info:"",
+                powerMaxsize : 1500,
+                bearingMaxsize : 60,
+                uHeightMaxsize: 9
+            }
+            var data2 = {
+                info:"",
+                listName:"",
+                c0:"",
+                c1:"",
+                c2:""
+            }
+            gui = new dat.gui.GUI({
+                type: 'signboard2',
+                name: '6F-19 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[关闭以查看各机柜信息]',
+                isClose: true,
+                domWidth: '320px',
+                opacity:0.7,
+                hasTitle: true
+            });
+            gui.addTab(obj);
+            gui.add(data1, 'info').name("容量情况").link('架式设备信息');
+            gui.add(data1, 'powerMaxsize').name('功耗(W)').step(1).min(0).max(7000).link('架式设备信息');
+            gui.add(data1, 'bearingMaxsize').name('承重(KG)').step(1).min(0).max(1000).link('架式设备信息');
+            gui.add(data1, 'uHeightMaxsize').name('U高(U)').step(1).min(0).max(42).link('架式设备信息');
+            gui.add(data2, 'info').name("设备信息").link('架式设备信息');
+            gui.add(data2, 'listName').name("编号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;位置&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;负责人&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;插槽").link('架式设备信息');
+            gui.add(data2, 'c0').name("YC101").link('架式设备信息');
+            gui.add(data2, 'c1').name("YC060").link('架式设备信息');
+            gui.add(data2, 'c2').name("YC019").link('架式设备信息');
+            gui.setPosition(30, null, null, 30);
+            box.addUI(gui.domElement, [box.size[0]-1.2, box.size[1]-0.5, box.size[2] ],[0.2,1]);
+        }
+        function create_panel2( num, box ) {
+            var obj = {
+                "Info1": {},
+                "Info2": {}
+            };
+            var data1 = {
+                num : 'YC'+num.toString(),
+                name : 'HUAWEI',
+                belong: '6F-19',
+				type:"RH2288_V3",
+				upos:38
+            }
+            box_gui = new dat.gui.GUI({
+                type: 'signboard2',
+                name: 'HUAWEI',
+                isClose: true,
+                domWidth: '200px',
+                hasTitle: true
+            });
+            box_gui.setPosition(-200,0,null,null);  // 防止初始创建闪一下
+            box_gui.addTab(obj);
+            box_gui.add(data1, 'num').name("编号").link('基本信息1');
+            box_gui.add(data1, 'name').name("名称").link('基本信息1');
+            box_gui.add(data1, 'belong').name("所属").link('基本信息1');
+            box_gui.add(data1, 'type').name("设备型号").link('基本信息1');
+            box_gui.add(data1, 'upos').name("U位").link('基本信息1');
+            box.addUI(box_gui.domElement, [box.size[0], box.size[1]-0.5, box.size[2] ],[0.2,1]);
+        }
+	}		
+</script>
+
+</html>
