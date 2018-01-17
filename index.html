@@ -91,7 +91,9 @@
                         })
                         .onComplete(function () {
                             door.node.rotation.set(flyPos.x, flyPos.y, flyPos.z);
-                            t.off('mousedown');                        })
+                            door.angles = door.node.rotation;
+                            t.off('mousedown');
+                        })
                         .start();
                         create_panel1(t);
                     }
