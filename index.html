@@ -50,7 +50,7 @@
             // 隐藏房顶杂物
             app.buildings[0].floors[0].showMisc(false)
             // 移动摄像机到指定机柜
-            huawei.cabinets.forEach(function (t) {t.on('mousedown',function () {
+            huawei.cabinets.forEach(function (t) {t.on('click',function () {
                 // 透明化其他柜子
                 if(gui != null)
                     gui.destroy();
@@ -92,7 +92,6 @@
                         .onComplete(function () {
                             door.node.rotation.set(flyPos.x, flyPos.y, flyPos.z);
                             door.angles = door.node.rotation;
-                            t.off('mousedown');
                         })
                         .start();
                         create_panel1(t);
@@ -101,7 +100,7 @@
             })
             })
             huawei.devices.forEach(function (dev) {
-                dev.on('mousedown',function () {
+                dev.on('click',function () {
                     if(box_gui != null)
                         box_gui.destroy();
                     if(gui != null)
@@ -110,7 +109,7 @@
 					create_panel2(num,dev);
                 })
             })
-			app.on('mousedown',function (ev) {
+			app.on('click',function (ev) {
                 ev.preventDefault();
 			    console.log(ev.button)
 				if(ev.button == 2){
@@ -192,7 +191,16 @@
             box_gui.add(data1, 'belong').name("所属").link('基本信息1');
             box_gui.add(data1, 'type').name("设备型号").link('基本信息1');
             box_gui.add(data1, 'upos').name("U位").link('基本信息1');
+
             box.addUI(box_gui.domElement, [box.size[0], box.size[1]-0.5, box.size[2] ],[0.2,1]);
+
+            box_gui.__closeButton.onclick = function () {
+                box_gui.destroy();
+                box_gui = null;
+                console.log(box);
+                box.removeUI();
+                box.uiDom = null;
+            }
         }
 	}		
 </script>
