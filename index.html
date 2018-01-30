@@ -6,7 +6,7 @@
 	<!-- 引用js -->
 	<script src="https://speech.uinnova.com/static/release/thing3d.min.js"></script>
 	<!--<script src="../../dist/thing3d.min.js"></script>-->
-	<script type="text/javascript" src="https://speech.uinnova.com/static/release/dat.gui.js"></script>
+	<script type="text/javascript" src="https://speech.uinnova.com/static/release/dat.gui.min.js"></script>
 	<style>
 		body {
 			margin: 0;
@@ -87,11 +87,11 @@
                         .easing(TWEEN.Easing.Elastic.InOut)
                         .onUpdate(function () {
                             door.node.rotation.set(this.x, this.y, this.z);
-                            door.angles = door.node.rotation;
+//                            door.angles = door.node.rotation;
                         })
                         .onComplete(function () {
                             door.node.rotation.set(flyPos.x, flyPos.y, flyPos.z);
-                            door.angles = door.node.rotation;
+//                            door.angles = door.node.rotation;
                         })
                         .start();
                         create_panel1(t);
