@@ -29,9 +29,6 @@
 			el: "div3d",
 			ak: 'app_test_key',
 			url: 'https://speech.uinnova.com/static/models/huawei/', // 模型场景的url
-//			url: 'model/huawei', // 模型场景的url
-//			loadSpeed:2,
-//			loadMode:1,
 			complete: function () {
 				do_init();
 			}
@@ -109,18 +106,18 @@
 					create_panel2(num,dev);
                 })
             })
-			app.on('click',function (ev) {
-                ev.preventDefault();
-			    console.log(ev.button)
-				if(ev.button == 2){
-				    console.log("dian ji le you jian")
-                    app.camera.flyTo({
-                        position: huawei.cam_start_pos,
-                        target: huawei.cam_start_tar,
-                        time: 1000,
-					})
-				}
-            })
+//			app.on('click',function (ev) {
+//                ev.preventDefault();
+//			    console.log(ev.button)
+//				if(ev.button == 2){
+//				    console.log("dian ji le you jian")
+//                    app.camera.flyTo({
+//                        position: huawei.cam_start_pos,
+//                        target: huawei.cam_start_tar,
+//                        time: 1000,
+//					})
+//				}
+//            })
         }
 
 		function create_panel1( box ) {
@@ -186,11 +183,11 @@
             });
             box_gui.setPosition(-200,0,null,null);  // 防止初始创建闪一下
             box_gui.addTab(obj);
-            box_gui.add(data1, 'num').name("编号").link('基本信息1');
-            box_gui.add(data1, 'name').name("名称").link('基本信息1');
-            box_gui.add(data1, 'belong').name("所属").link('基本信息1');
-            box_gui.add(data1, 'type').name("设备型号").link('基本信息1');
-            box_gui.add(data1, 'upos').name("U位").link('基本信息1');
+            box_gui.add(data1, 'num').name("编号").link('Info1');
+            box_gui.add(data1, 'name').name("名称").link('Info1');
+            box_gui.add(data1, 'belong').name("所属").link('Info1');
+            box_gui.add(data1, 'type').name("设备型号").link('Info1');
+            box_gui.add(data1, 'upos').name("U位").link('Info1');
 
             box.addUI(box_gui.domElement, [box.size[0], box.size[1]-0.5, box.size[2] ],[0.2,1]);
 
