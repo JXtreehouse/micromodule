@@ -2,11 +2,11 @@
 <html>
 <head>
 	<meta charset=utf-8>
-	<title>华为微模块-Demo</title>
+	<title>机房-Demo</title>
 	<!-- 引用js -->
 	<script src="https://speech.uinnova.com/static/release/thing3d.min.js"></script>
 	<!--<script src="../../dist/thing3d.min.js"></script>-->
-	<script type="text/javascript" src="https://speech.uinnova.com/static/release/dat.gui.min.js"></script>
+    <script type="text/javascript" src="https://speech.uinnova.com/static/release/thing.widget.min.js"></script>
 	<style>
 		body {
 			margin: 0;
@@ -36,6 +36,11 @@
 		var huawei = [];
 		var gui, box_gui;
         function do_init() {
+            document.body.oncontextmenu = function (evt) {// 屏蔽鼠标右键系统菜单
+                evt = evt || event;
+                evt.returnValue = false;
+                return false;
+            };
             huawei.floors = app.buildings[0].floors;
             huawei.floors[0].showRoof(false);
             huawei.cameraStartPos = app.camera.position;
@@ -47,14 +52,18 @@
             // 隐藏房顶杂物
             app.buildings[0].floors[0].showMisc(false)
             // 移动摄像机到指定机柜
-            huawei.cabinets.forEach(function (t) {t.on('click',function () {
+            huawei.cabinets.forEach(function (t) {t.on('singleclick',function () {
                 // 透明化其他柜子
                 if(gui != null)
                     gui.destroy();
+                if(box_gui != null)
+                    box_gui.destroy();
+                // t.removeUI();
+                // t.uiDom = null;
                 huawei.cabinets.forEach(function (t2) {
                     t2.style.opacity = 0.1;
                     var rot = t2.findSubObjects("qianmen")[0].node.rotation;
-                    t2.findSubObjects("qianmen")[0].node.rotation.set(rot.x,rot.y,0,0);
+                    rot.set(rot.x,rot.y,0,0);
                 });
                 huawei.devices.forEach(function (dev) {
                     dev.visible = false;
@@ -69,10 +78,10 @@
                     y: fromPos.y,
                     z: -90
                 };
-                var pos;
+                var pos,temp;
                 switch(t.custom.排) {
-					case '1': pos = [-5.8,7.06,-7.73];break;
-					case '2': pos = [-7,10,4.8];break;
+					case '1': pos = [-5.8,7.06,-7.73];temp = -2;break;
+					case '2': pos = [-7,10,4.8];break;temp = 4;;
 				}
                 app.camera.flyTo({
                     position: pos,
@@ -91,17 +100,19 @@
 //                            door.angles = door.node.rotation;
                         })
                         .start();
-                        create_panel1(t);
+                        create_panel1(t,temp);
                     }
                 });
             })
             })
             huawei.devices.forEach(function (dev) {
-                dev.on('click',function () {
+                dev.on('singleclick',function () {
                     if(box_gui != null)
                         box_gui.destroy();
                     if(gui != null)
                         gui.destroy();
+                    // dev.removeUI();
+                    dev.uiDom = null;
                     var num = dev.name.substr(7);
 					create_panel2(num,dev);
                 })
@@ -120,9 +131,7 @@
 //            })
         }
 
-		function create_panel1( box ) {
-            if(box_gui != null)
-                box_gui.destroy();
+		function create_panel1( box,temp ) {
             var obj = {
                 "架式设备信息": {},
                 "基本信息": {},
@@ -143,11 +152,12 @@
             }
             gui = new dat.gui.GUI({
                 type: 'signboard2',
-                name: '6F-19 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[关闭以查看各机柜信息]',
+                name: '6F-19 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
                 isClose: true,
                 domWidth: '320px',
                 opacity:0.7,
-                hasTitle: true
+                hasTitle: true,
+                zIndex: -1
             });
             gui.addTab(obj);
             gui.add(data1, 'info').name("容量情况").link('架式设备信息');
@@ -159,8 +169,24 @@
             gui.add(data2, 'c0').name("YC101").link('架式设备信息');
             gui.add(data2, 'c1').name("YC060").link('架式设备信息');
             gui.add(data2, 'c2').name("YC019").link('架式设备信息');
-            gui.setPosition(30, null, null, 30);
-            box.addUI(gui.domElement, [box.size[0]-1.2, box.size[1]-0.5, box.size[2] ],[0.2,1]);
+            gui.setPosition(-200,0,null,null);
+            var uiu = app.create({
+                type:"UI",
+                parent:box,
+                el:gui.domElement,
+                offset:[temp,0,2],
+                pivot:[0.2,1]
+            })
+            // box.addUI(gui.domElement, [box.size[0]+temp, box.size[1]-2, box.size[2] ],[0.2,1]);
+            var door = box.findSubObjects("qianmen")[0];
+            var rot = door.node.rotation;
+            gui.__closeButton.onclick = function () {
+                gui.destroy();
+                gui = null;
+                door.findSubObjects("qianmen")[0].node.rotation.set(rot.x,rot.y,0,0);
+                // box.removeUI();
+                // box.uiDom = null;
+            }
         }
         function create_panel2( num, box ) {
             var obj = {
@@ -189,14 +215,20 @@
             box_gui.add(data1, 'type').name("设备型号").link('Info1');
             box_gui.add(data1, 'upos').name("U位").link('Info1');
 
-            box.addUI(box_gui.domElement, [box.size[0], box.size[1]-0.5, box.size[2] ],[0.2,1]);
+            // box.addUI(box_gui.domElement, [box.size[0], box.size[1]-0.5, box.size[2] ],[0.2,1]);
+            app.create({
+                type:"UI",
+                parent:box,
+                el:box_gui.domElement,
+                offset:[0,0.5,0],
+                pivot:[0.2,1]
+            })
 
             box_gui.__closeButton.onclick = function () {
                 box_gui.destroy();
                 box_gui = null;
-                console.log(box);
-                box.removeUI();
-                box.uiDom = null;
+                // box.removeUI();
+                // box.uiDom = null;
             }
         }
 	}		
